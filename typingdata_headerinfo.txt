@@ -1,0 +1,29 @@
+Explanation of headers in typingdata.txt
+
+"Subject" : subject number
+"ParagraphType" : N = Normal paragraph; R = Random strings, B = Bigram strings
+"IKSIs" : Interkeystroke interval in milliseconds for current keystroke
+"Letters" : the letter that was typed
+"PredBigram" : the preceding bigram contain the preceding letter and current letter
+"SuccBigram" : the succeeding bigram containing the current letter and the next typed letter
+"PredBigramCorrect" : 0=incorrect 1=correct for each letter in the preceding bigram
+"SuccBigramCorrect" : 0=incorrect 1= correct for each letter in the succeeding bigram
+"PredTrigram" : the preceding trigram, letters: n-2, n-1, n
+"SuccTrigram" : the succeeding trigram, letters: n, n+1, n+2
+"PredTrigramCorrect" : accuracy labels for each letter
+"SuccTrigramCorrect" : accuracy labels for each letter
+"GUT" : raw letter frequency estimated from sample of Gutenberg corpus
+"PredBigramMLE" : expected likelihood of current letter n given letter n-1 (from gutenberg corpus)
+"SuccBigramMLE" : expected likelihood of current letter n given letter n+1 (from gutenberg corpus)
+"PredBigramFreq" : raw preceding bigram counts from gutenberg corpus
+"SuccBigramFreq" : raw succeeding bigram counts from gutenberg corpus
+"PredTrigramMLE" : expected likelihood of current letter given letters n-2 and n-1
+"PredTrigramFreq" : raw preceding trigram counts from gutenberg corpus
+"SuccTrigramMLE" : expected likelihood of current letter given letters n+1 and n+2
+"SuccTrigramFreq" : raw succeeding trigram counts from gutenberg corpus
+"let_pos" : position of the letter in the word
+"word_lengths" : word length of current word
+"probs" : the probability of current letter n given serial position and word length. Taken from Norvig's analysis of the google n-gram counts.
+"whole_word" : the current word
+"word_prob" : expected likelihood of word, from google n-gram corpus
+"whole_word_acc" : proportion of correct letters in current word

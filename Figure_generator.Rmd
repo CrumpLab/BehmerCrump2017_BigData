@@ -1,0 +1,117 @@
+# Behmer & Crump (2017) example analysis
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.path='NewFigs/',
+                       warning=FALSE, message=FALSE,fig.ext=".pdf",dev='pdf')
+```
+
+## Loading the data
+
+```{r}
+require(plyr)
+require(ggplot2)
+load("GutenbergFrequencytables.RData")
+AllSubjectLetter<-read.table("mturk.txt",header=T,sep=" ",
+                             colClasses = c('integer',
+                                            'character',
+                                            'numeric',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'character',
+                                            'integer',
+                                            'numeric',
+                                            'numeric',
+                                            'integer',
+                                            'integer',
+                                            'numeric',
+                                            'integer',
+                                            'numeric',
+                                            'integer',
+                                            'integer',
+                                            'integer',
+                                            'numeric',
+                                            'character',
+                                            'numeric',
+                                            'character'))
+
+```
+
+
+# Example graphs
+
+```{r,fig.height=3,fig.width=5}
+
+# Create dataframe for Letter Frequency and IKSI correlations
+# for each subject as a function of mean IKSI, and split by paragraph type
+newPlotData<-AllSubjectLetter
+LetCorrectAll<-matrix(unlist(strsplit(as.character(newPlotData$PredBigramCorrect),split="")),ncol=2,byrow=T)
+CLetters<-LetCorrectAll[1:dim(LetCorrectAll)[1],1]
+newPlotData<-data.frame(newPlotData,CLetters)
+newPlotData<-newPlotData[newPlotData$IKSIs<2000 & newPlotData$CLetters==1,]
+lowercase<-c('abcdefghijklmnopqrstuvwxyz')
+lowercase<-unlist(strsplit(lowercase,split=""))
+newPlotData<-newPlotData[newPlotData$Letters%in%lowercase,]
+newPlotData<-aggregate(IKSIs~Subject*GUT*ParagraphType,newPlotData,mean)
+
+newAllDataL<-ddply(newPlotData, .(Subject,ParagraphType),summarise,meanIKSI=mean(IKSIs),LetterRho=cor(IKSIs,GUT,method="spearman"))
+
+
+# Create dataframe for Bigram Frequency and IKSI correlations
+# for each subject as a function of mean IKSI, and split by paragraph type
+newPlotData<-AllSubjectLetter
+newPlotData<-newPlotData[newPlotData$IKSIs<2000 & newPlotData$PredBigramCorrect==11,]
+newPlotData<-newPlotData[newPlotData$PredBigram%in%AllBigramsMLE$Bigrams,]
+newPlotData<-aggregate(IKSIs~Subject*PredBigramFreq*ParagraphType,newPlotData,mean)
+
+newAllDataB<-ddply(newPlotData, .(Subject,ParagraphType),summarise,meanIKSI=mean(IKSIs),BigramRho=cor(IKSIs,PredBigramFreq,method="spearman"))
+
+# Create dataframe for Trigram Frequency and IKSI correlations
+# for each subject as a function of mean IKSI, and split by paragraph type
+newPlotData<-AllSubjectLetter
+newPlotData<-newPlotData[newPlotData$IKSIs<2000 & newPlotData$PredTrigramCorrect==111,]
+newPlotData<-newPlotData[newPlotData$PredTrigram%in%AllTrigramsMLE$Trigrams,]
+newPlotData<-aggregate(IKSIs~Subject*PredTrigramMLE*ParagraphType,newPlotData,mean)
+newAllDataT<-ddply(newPlotData, .(Subject,ParagraphType),summarise,meanIKSI=mean(IKSIs),TrigramRho=cor(IKSIs,PredTrigramMLE,method="spearman"))
+
+#Merge dfs for plotting
+
+names(newAllDataL)[4]<-"Rho"
+names(newAllDataB)[4]<-"Rho"
+names(newAllDataT)[4]<-"Rho"
+
+newAllData<-rbind(newAllDataL,newAllDataB,newAllDataT)
+newAllData<-data.frame(newAllData,nGram=rep(c("1:Letters","2:Bigrams","3:Trigrams"),each=1038))
+newMeanIKSI<-rep(newAllData$meanIKSI[1:1038],3)
+newAllData<-data.frame(newAllData,IKSI=newMeanIKSI)
+
+# Plot Normal Paragraph Data
+newAllDataPlot<-newAllData[newAllData$ParagraphType=="N",]
+
+ggplot(newAllDataPlot,aes(IKSI,Rho))+
+  geom_point(alpha = 1, size=.5)+
+  geom_smooth(method=lm)+ylab("Individual Subject Correlations \n between n-gram Frequency and IKSI")+xlab("Mean Individual Typing Speed")+ylim(-1,.5)+
+  theme_classic(base_size=10)+facet_wrap(~nGram)+ggtitle("Normal Paragraph Typing")
+
+# Plot Bigram String Data
+newAllDataPlot<-newAllData[newAllData$ParagraphType=="B",]
+
+ggplot(newAllDataPlot,aes(IKSI,Rho))+
+  geom_point(alpha = 1, size=.5)+
+  geom_smooth(method=lm)+ylab("Individual Subject Correlations \n between n-gram Frequency and IKSI")+xlab("Mean Individual Typing Speed")+ylim(-1,.5)+
+  theme_classic(base_size=10)+facet_wrap(~nGram)+ggtitle("Bigram Paragraph Typing")+scale_x_continuous(breaks=c(200,400,600,800))
+
+#Plot Random String Data
+newAllDataPlot<-newAllData[newAllData$ParagraphType=="R",]
+
+ggplot(newAllDataPlot,aes(IKSI,Rho))+
+  geom_point(alpha = 1, size=.5)+
+  geom_smooth(method=lm)+ylab("Individual Subject Correlations \n between n-gram Frequency and IKSI")+xlab("Mean Individual Typing Speed")+ylim(-1,.5)+
+  theme_classic(base_size=10)+facet_wrap(~nGram)+ggtitle("Random Paragraph Typing")+scale_x_continuous(breaks=c(200,400,600,800))
+```
